@@ -11,7 +11,7 @@ This repo is a monorepo containing a Rust-based cargo crate, an NPM package and 
 - [vetkeys.shipstone.com](https://vetkeys.shipstone.com)
 - [vetkeys2.shipstone.com](https://vetkeys2.shipstone.com)
 
-# Milestone 1 Video
+# Project Video
 
 https://youtu.be/UoFhNJdzqNg
 
