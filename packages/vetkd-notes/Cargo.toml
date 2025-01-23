@@ -11,7 +11,7 @@ exclude = [ "package.json", "node_modules", ".turbo", "turbo.json" ]
 wasm-opt = false
 
 [dependencies]
-candid = "0.10.12"
+candid = "0.10.13"
 ic-cdk = "0.17.1"
 ic-cdk-macros = "0.17.1"
 ic-stable-structures = "0.6.7"
