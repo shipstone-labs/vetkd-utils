@@ -16,7 +16,7 @@
       "postgenerate": "mkdir -p packages/vetkd-notes-client/src/declarations && cp -r src/declarations/* packages/vetkd-notes-client/src/declarations/"
     },
     "vetkd_www": {
-      "dependencies": ["vetkd_notes", "vetkd_system_api"],
+      "dependencies": ["vetkd_notes", "vetkd_system_api", "internet_identity"],
       "frontend": {
         "entrypoint": "packages/frontend/public/index.html"
       },

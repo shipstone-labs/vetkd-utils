@@ -2,6 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
+      "cache": false,
       "outputs": ["public/build/**"]
     },
     "build:release": {
