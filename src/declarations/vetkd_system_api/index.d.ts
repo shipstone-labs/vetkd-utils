@@ -7,7 +7,7 @@ import type {
 import type { Principal } from "@dfinity/principal";
 import type { IDL } from "@dfinity/candid";
 
-import type { _SERVICE } from "./vetkd_system_api.did.d.ts";
+import { _SERVICE } from './vetkd_system_api.did';
 
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const canisterId: string;

@@ -3,4 +3,5 @@ node_modules
 /.dfx
 .turbo
 .env*
+!.env*example
 docs

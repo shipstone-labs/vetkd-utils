@@ -11,10 +11,12 @@
     "watch": "cargo watch --why --ignore packages/wasm-client/tsup.config.bundled* --ignore packages/wasm-client/pkg --ignore packages/wasm-client/dist -x 'build' -s 'cd packages/wasm-client && wasm-pack build && mv pkg/wasm_client.js pkg/wasm_client.mjs && pnpm tsup'",
     "prune": "turbo prune",
     "clean": "turbo prune && rm -rf node_modules",
-    "deploy": "dotenv run turbo deploy",
+    "deploy": "dotenv -f ./.env run -- turbo deploy",
     "print-dfx-ii": "echo local Internet Identity: http://$(dfx canister id internet_identity).localhost:8000",
     "print-dfx-www": "echo local dfx frontend server: http://$(dfx canister id vetkd_www).localhost:8000",
-    "print-local-www": "echo local frontend server: http://localhost:3000"
+    "print-local-www": "echo local frontend server: http://localhost:3000",
+    "deploy:ic": "dotenv -f ./.env run -- bash ./deploy-ic.sh",
+    "deploy:local": "dotenv -f ./.env.local run -- bash ./deploy-ic.sh"
   },
   "keywords": [],
   "author": "",

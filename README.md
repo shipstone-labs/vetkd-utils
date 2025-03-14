@@ -53,6 +53,26 @@ Please also see the [README of the original encrypted-notes-dapp](../encrypted-n
 
 This example uses an **insecure** implementation of [the proposed vetKD system API](https://github.com/dfinity/interface-spec/pull/158) in a pre-compiled form via the [vetkd_system_api.wasm](./vetkd_system_api.wasm). **Do not use this in production or for sensitive data**! This example is solely provided **for demonstration purposes** to collect feedback on the mentioned vetKD system API.
 
+## Deployment
+
+There is a small deployment script which can be used or modify to deploy a solution. It's driven by .env
+and will output the canister ids into canisterIds.json.
+Note that neither files are checked in on purpose so that
+the main repo doesn't get convoluted with random canister ids or identity names. Please copy .env.example to .env,
+update it the way you need and then execute:
+
+```sh
+pnpm deploy:ic
+```
+
+This will essentially run ./deploy-ic.sh
+which you can modify to deploy your containers as well,
+or you can use your own deployment scripts.
+Since most of the time the identity used to deploy canisters
+in ic require a password prompt the script will check
+whether the build actually has a different hash for the wasm
+output, but non of this is essential of course.
+
 ## Manual local deployment
 
 ### Prerequisites
@@ -96,55 +116,25 @@ dfx start --clean
 If you see an error `Failed to set socket of tcp builder to 0.0.0.0:8000`, make sure that the port `8000` is not occupied, e.g., by the previously run Docker command (you might want to stop the Docker daemon whatsoever for this step).
 :::
 
-### Step 5: Install a local [Internet Identity (II)](https://wiki.internetcomputer.org/wiki/What_is_Internet_Identity) canister:
+### Step 5:. Deploy canisters
 
-:::info 
-If you have multiple `dfx` identities set up, ensure you are using the identity you intend to use with the `--identity` flag.
-:::
-   1. To install and deploy a canister run:
-      ```sh
-      dfx deploy internet_identity --argument '(null)'
-      ```
-   2. To print the Internet Identity URL, run:
-      ```sh
-      pnpm print-dfx-ii
-      ```
-   3. Visit the URL from above and create at least one local internet identity.
+Copy the .env.local.example file and call it .env.local.
+Make any changes you'd like, but it's assuming
+to be running on the local network. There is a .env.example for ic deployment with equivalent values.
 
-### Step 6: Install the vetKD system API canister:
-   1. Ensure the Canister SDK (dfx) uses the canister ID that is hard-coded in the backend canister Rust source code:
-      ```sh
-      # NOTE: This is the canister ID specified in the source code.
-      # for your own deployment you have to create a new one or wait
-      # until the final release of the actual system api is finished and released.
-      dfx canister create vetkd_system_api --specified-id nn664-2iaaa-aaaao-a3tqq-cai
-      ```
-   2. Install and deploy the canister:
-      ```sh
-      dfx deploy vetkd_system_api
-      ```
-
-### Step 7:. Deploy the encrypted notes backend canister:
-
+Deploy/compile/generate the canisters
 ```sh
-dfx deploy "vetkd_notes"
-```
-⚠️ Before deploying the Rust canister, you should first run `rustup target add wasm32-unknown-unknown`.
-
-### Step 8: Update the generated canister interface bindings: 
-
-```sh
-dfx generate "vetkd_notes"
+pnpm deploy:local
 ```
 
-### Step 9: Deploy the frontend canister:
-```sh
-dfx deploy vetkd_www
-```
-You can check its URL with `pnpm print-dfx-www`.
+### Step 10: Open the frontend (Optional)
 
-
-### Step 10: Open the frontend:
+You can also run `pnpm print-dfx-www` to see how
+to access the local canister. If you want to use
+this you should update .env.local and then re-deploy
+so that the signature domain and uri matches.
+The default values assume local deployment using
+`pnpm dev` i.e. address is at `pnpm print-local-www`
 
    1. Start the local development server, which also supports hot-reloading:
       ```sh
