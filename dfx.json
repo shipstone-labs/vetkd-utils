@@ -10,6 +10,9 @@
       "type": "rust",
       "candid": "packages/vetkd-notes-canister/vetkd_notes_canister.did",
       "package": "vetkd-notes-canister",
+      "env": {
+        "VETKD_SYSTEM_API_CANISTER_ID": "{canister_id:vetkd_system_api}"
+      },
       "postgenerate": "mkdir -p packages/vetkd-notes-client/src/declarations && cp -r src/declarations/* packages/vetkd-notes-client/src/declarations/"
     },
     "vetkd_www": {

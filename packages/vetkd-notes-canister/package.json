@@ -5,7 +5,7 @@
     "vetkd-notes": "workspace:*"
   },
   "scripts": {
-    "build": "cargo build && candid-extractor ../../target/wasm32-unknown-unknown/debug/vetkd_notes_canister.wasm > vetkd_notes_canister.did && ../../didc.sh bind -t js vetkd_notes_canister.did --output vetkd_notes_canister.mjs && cp vetkd_notes_canister.mjs vetkd_notes_canister.js && ../../didc.sh bind -t ts vetkd_notes_canister.did --output vetkd_notes_canister.d.ts",
-    "build:release": "cargo build --release && candid-extractor ../../target/wasm32-unknown-unknown/release/vetkd_notes_canister.wasm > vetkd_notes_canister.did && ../../didc.sh bind -t js vetkd_notes_canister.did --output vetkd_notes_canister.mjs && ../../didc.sh bind -t ts vetkd_notes_canister.did --output vetkd_notes_canister.d.ts"
+    "build": "cross-env VETKD_SYSTEM_API_CANISTER_ID=$(dfx canister id vetkd_system_api) cargo build && candid-extractor ../../target/wasm32-unknown-unknown/debug/vetkd_notes_canister.wasm > vetkd_notes_canister.did && ../../didc.sh bind -t js vetkd_notes_canister.did --output vetkd_notes_canister.mjs && cp vetkd_notes_canister.mjs vetkd_notes_canister.js && ../../didc.sh bind -t ts vetkd_notes_canister.did --output vetkd_notes_canister.d.ts",
+    "build:release": "cross-env VETKD_SYSTEM_API_CANISTER_ID=$(dfx canister id vetkd_system_api) cargo build --release && candid-extractor ../../target/wasm32-unknown-unknown/release/vetkd_notes_canister.wasm > vetkd_notes_canister.did && ../../didc.sh bind -t js vetkd_notes_canister.did --output vetkd_notes_canister.mjs && ../../didc.sh bind -t ts vetkd_notes_canister.did --output vetkd_notes_canister.d.ts"
   }
 }

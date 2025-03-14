@@ -1,3 +1,10 @@
+#[cfg(not(debug_assertions))]
+include!(concat!(env!("OUT_DIR"), "/canister_ids.rs"));
+
+// Provide a default for Rust Analyzer to avoid errors
+#[cfg(debug_assertions)]
+pub const VETKD_SYSTEM_API_CANISTER_ID: &str = "mock-canister-id"; // Temporary placeholder
+
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
 use custom_debug::Debug;
 use ic_stable_structures::{storable::Bound, Storable};
@@ -363,8 +370,6 @@ fn caller() -> Principal {
 }
 
 mod vetkd_types;
-
-pub const VETKD_SYSTEM_API_CANISTER_ID: &str = "nn664-2iaaa-aaaao-a3tqq-cai";
 
 use vetkd_types::{
     CanisterId, VetKDCurve, VetKDEncryptedKeyReply, VetKDEncryptedKeyRequest, VetKDKeyId,
