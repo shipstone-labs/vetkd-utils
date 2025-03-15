@@ -5,18 +5,20 @@ include!(concat!(env!("OUT_DIR"), "/canister_ids.rs"));
 #[cfg(debug_assertions)]
 pub const VETKD_SYSTEM_API_CANISTER_ID: &str = "mock-canister-id"; // Temporary placeholder
 
-use candid::{CandidType, Decode, Deserialize, Encode, Principal};
+use candid::{define_function, CandidType, Decode, Deserialize, Encode, Principal};
 use ic_cdk_macros::*;
+use ic_certified_map::RbTree;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{
     storable::Bound, DefaultMemoryImpl, StableBTreeMap, StableCell, Storable,
 };
 use ic_vetkd_notes::{EncryptedNote, NoteId, EVERYONE};
+use serde::Serialize;
+use serde_bytes::ByteBuf;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::str::FromStr;
-
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
 #[derive(CandidType, Deserialize, Default)]
@@ -477,3 +479,69 @@ pub fn vetkd_system_api_canister_id() -> CanisterId {
 }
 
 ic_cdk::export_candid!();
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct HeaderField(pub String, pub String);
+
+pub type StatusCode = u16;
+
+pub type Blob = Vec<u8>;
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct HttpRequest {
+    pub url: String,
+    pub method: String,
+    pub headers: Vec<HeaderField>,
+    pub body: Blob,
+    pub certificate_version: Option<u16>,
+}
+
+define_function!(pub CallbackFunc : () -> () query);
+
+#[derive(CandidType, Deserialize, Clone)]
+pub struct HttpResponse {
+    pub body: Blob,
+    pub headers: Vec<HeaderField>,
+    pub status_code: StatusCode,
+}
+
+// Trait for handling storage state (this is likely custom to your project)
+pub trait StorageStateStrategy {
+    fn get_asset(&self, url: &str) -> Option<Vec<u8>>;
+}
+
+// Example struct implementing StorageStateStrategy
+pub struct MyStorageState {
+    assets: RbTree<String, Vec<u8>>,
+}
+
+impl StorageStateStrategy for MyStorageState {
+    fn get_asset(&self, url: &str) -> Option<Vec<u8>> {
+        self.assets.get(url.as_bytes()).cloned()
+    }
+}
+
+#[query]
+pub fn http_request(
+    HttpRequest {
+        method,
+        url,
+        headers: req_headers,
+        body: _,
+        certificate_version,
+    }: HttpRequest,
+) -> HttpResponse {
+    if method != "GET" {
+        return HttpResponse {
+            status_code: 405,
+            headers: vec![],
+            body: vec![],
+        };
+    }
+    // Handle the HTTP request here
+    HttpResponse {
+        status_code: 200,
+        headers: vec![],
+        body: vec![],
+    }
+}
