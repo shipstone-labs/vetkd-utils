@@ -27,7 +27,7 @@ ic-cdk = "0.17.1"
 ic-cdk-macros = "0.17.1"
 ic-certification = "2.6.0"
 ic-certified-map = "0.4.0"
-ic-stable-structures = "0.6.7"
+ic-stable-structures = "0.6.8"
 ic-types = "0.7.0"
 ic-vetkd-notes = { path = "../vetkd-notes" }
 include_dir = "0.7.4"
