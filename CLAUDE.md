@@ -8,7 +8,8 @@ Before committing code, Claude should run the following checks:
 
 ```bash
 # Run tests
-cargo test --all
+cd packages/vetkd-notes-canister/test && ./run_tests.sh
+cd packages/vetkd-notes-client && wasm-pack test --node
 
 # Run clippy
 cargo clippy
