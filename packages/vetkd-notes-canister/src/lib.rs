@@ -5,7 +5,7 @@ include!(concat!(env!("OUT_DIR"), "/canister_ids.rs"));
 #[cfg(debug_assertions)]
 pub const VETKD_SYSTEM_API_CANISTER_ID: &str = "mock-canister-id"; // Temporary placeholder
 
-use candid::{define_function, CandidType, Decode, Deserialize, Encode, Principal};
+use candid::{CandidType, Decode, Deserialize, Encode, Principal};
 use ic_cdk_macros::*;
 use ic_certified_map::RbTree;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
@@ -14,12 +14,21 @@ use ic_stable_structures::{
 };
 use ic_vetkd_notes::{EncryptedNote, NoteId, EVERYONE};
 use serde::Serialize;
-use serde_bytes::ByteBuf;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::str::FromStr;
 type Memory = VirtualMemory<DefaultMemoryImpl>;
+use animals::Animal;
+use asset_util::CertifiedAssets;
+use ic_canister_sig_creation::signature_map::SignatureMap;
+use ic_cdk::api::set_certified_data;
+use ic_certified_map::AsHashTree;
+
+mod animals;
+mod certified_data;
+mod http;
+mod service;
 
 #[derive(CandidType, Deserialize, Default)]
 pub struct NoteIds {
@@ -81,6 +90,11 @@ thread_local! {
             MEMORY_MANAGER.with_borrow(|m| m.get(MemoryId::new(3))),
         )
     );
+
+    static ANIMALS: RefCell<HashMap<u32, Animal>> = RefCell::new(HashMap::new());
+    static SIGNATURES : RefCell<SignatureMap> = RefCell::new(SignatureMap::default());
+    static ASSETS: RefCell<CertifiedAssets> = RefCell::new(CertifiedAssets::default());
+
 }
 
 /// Unlike Motoko, the caller identity is not built into Rust.
@@ -478,70 +492,353 @@ pub fn vetkd_system_api_canister_id() -> CanisterId {
     CanisterId::from_str(VETKD_SYSTEM_API_CANISTER_ID).expect("failed to create canister ID")
 }
 
-ic_cdk::export_candid!();
-
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct HeaderField(pub String, pub String);
 
 pub type StatusCode = u16;
 
 pub type Blob = Vec<u8>;
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct HttpRequest {
-    pub url: String,
-    pub method: String,
-    pub headers: Vec<HeaderField>,
-    pub body: Blob,
-    pub certificate_version: Option<u16>,
+#[derive(CandidType, Serialize, Deserialize, Debug)]
+struct HttpRequest {
+    method: String,
+    url: String,
+    headers: Vec<(String, String)>,
+    body: Vec<u8>,
+    certificate_version: Option<u16>,
 }
 
-define_function!(pub CallbackFunc : () -> () query);
-
-#[derive(CandidType, Deserialize, Clone)]
-pub struct HttpResponse {
-    pub body: Blob,
-    pub headers: Vec<HeaderField>,
-    pub status_code: StatusCode,
+#[derive(CandidType, Serialize, Deserialize, Debug)]
+struct HttpResponse {
+    status_code: u16,
+    headers: Vec<(String, String)>,
+    body: Vec<u8>,
 }
 
-// Trait for handling storage state (this is likely custom to your project)
-pub trait StorageStateStrategy {
-    fn get_asset(&self, url: &str) -> Option<Vec<u8>>;
+// ✅ **Certified storage** - Using a single RbTree for certification
+thread_local! {
+    static CERTIFIED_MESSAGES: RefCell<RbTree<Vec<u8>, [u8; 32]>> = RefCell::new(RbTree::new());
+    static MESSAGE_STORAGE: RefCell<HashMap<String, (String, u16)>> = RefCell::new(HashMap::new());
+    static CERTIFIED_DATA: RefCell<Vec<String>> = RefCell::new(Vec::new());
 }
 
-// Example struct implementing StorageStateStrategy
-pub struct MyStorageState {
-    assets: RbTree<String, Vec<u8>>,
+// ✅ **Hashing function**
+// fn hash_json(json_str: &str) -> Hash {
+//     let mut hasher = Sha256::new();
+//     hasher.update(json_str.as_bytes());
+//     let result = hasher.finalize();
+//     Hash::try_from(&result[..]).unwrap()
+// }
+
+#[update]
+fn force_invalid_certification() {
+    ic_cdk::println!("❌ Setting INVALID Certified Data!");
+    set_certified_data(&[255; 32]); // Set an invalid hash
 }
 
-impl StorageStateStrategy for MyStorageState {
-    fn get_asset(&self, url: &str) -> Option<Vec<u8>> {
-        self.assets.get(url.as_bytes()).cloned()
-    }
+#[update]
+fn update_certified_data() {
+    CERTIFIED_MESSAGES.with(|storage| {
+        let storage_ref = storage.borrow();
+        let root_hash = storage_ref.root_hash();
+
+        ic_cdk::println!("🟢 Calling set_certified_data() with: {:?}", root_hash);
+        set_certified_data(&root_hash);
+    });
 }
 
-#[query]
-pub fn http_request(
-    HttpRequest {
-        method,
-        url,
-        headers: req_headers,
-        body: _,
-        certificate_version,
-    }: HttpRequest,
-) -> HttpResponse {
-    if method != "GET" {
-        return HttpResponse {
-            status_code: 405,
-            headers: vec![],
-            body: vec![],
-        };
-    }
-    // Handle the HTTP request here
-    HttpResponse {
-        status_code: 200,
-        headers: vec![],
-        body: vec![],
-    }
-}
+// 🚀 **Step 1: POST Handler for Storing Data**
+// #[update]
+// fn store_data(body: Vec<u8>) -> String {
+//     let json_request = String::from_utf8(body).unwrap_or_default();
+
+//     CERTIFIED_DATA.with(|data| {
+//         data.borrow_mut().push(json_request.clone());
+//     });
+
+//     let json_hash = hash_json(&json_request);
+//     let new_entry_id = CERTIFIED_DATA.with(|data| data.borrow().len()); // Unique key
+
+//     let key = format!("/{}", new_entry_id);
+
+//     CERTIFIED_MESSAGES.with(|storage| {
+//         let mut storage = storage.borrow_mut();
+//         storage.insert(key.clone(), json_hash);
+//     });
+
+//     update_certified_data();
+
+//     ic_cdk::println!("🚀 Stored and certified data under key: {}", key);
+
+//     json!({
+//         "success": true,
+//         "entry_id": new_entry_id
+//     })
+//     .to_string()
+// }
+
+// fn encode_certificate(cert: &Option<Vec<u8>>) -> String {
+//     cert.as_ref()
+//         .map(|c| general_purpose::STANDARD.encode(c.to_bytes()))
+//         .unwrap_or_default()
+// }
+
+// fn get_certified_message(message_id: &str) -> Option<(String, u16, [u8; 32])> {
+//     MESSAGE_STORAGE.with(|msg_store| {
+//         msg_store
+//             .borrow()
+//             .get(message_id)
+//             .and_then(|(msg, status)| {
+//                 let key = format!("/{}", message_id);
+//                 CERTIFIED_MESSAGES.with(|storage| {
+//                     let storage_ref = storage.borrow();
+//                     let proof = storage_ref.witness(key.as_bytes()); // Use witness instead of get()
+//                     ic_cdk::println!("🌳 Merkle Proof (HashTree): {:?}", proof); // Debug print HashTree
+//                     match serde_cbor::to_vec(&proof) {
+//                         Ok(proof_bytes) => {
+//                             ic_cdk::println!("🌳 Merkle Proof (CBOR Encoded): {:?}", proof_bytes);
+//                             ic_cdk::println!("🔍 Raw HashTree: {:?}", proof); // Debug print HashTree
+//                             let value = (
+//                                 msg.clone(),
+//                                 *status,
+//                                 proof_bytes.try_into().unwrap_or_default(),
+//                             );
+//                             ic_cdk::println!("✅ Successfully encoded Merkle Proof: {:?}", value);
+//                             Some(value)
+//                         }
+//                         Err(err) => {
+//                             ic_cdk::println!("❌ Failed to encode Merkle Proof: {:?}", err);
+//                             None
+//                         }
+//                     }
+//                 })
+//             })
+//     })
+// }
+
+// fn create_certified_response(message_id: &str) -> HttpResponse {
+//     if let Some((message, stored_status, _hash)) = get_certified_message(message_id) {
+//         let ic_certificate = data_certificate();
+
+//         if let Some(cert) = &ic_certificate {
+//             if let Ok(decoded) = serde_cbor::from_slice::<serde_cbor::Value>(cert) {
+//                 ic_cdk::println!("🔍 Full Decoded Certificate: {:?}", decoded);
+
+//                 if let serde_cbor::Value::Map(map) = decoded {
+//                     if let Some(serde_cbor::Value::Bytes(certified_data_hash)) =
+//                         map.get(&serde_cbor::Value::Text("tree".to_string()))
+//                     {
+//                         ic_cdk::println!(
+//                             "✅ Extracted Certified Data Hash: {:?}",
+//                             certified_data_hash
+//                         );
+//                     }
+//                 }
+//             }
+//         }
+//         // Create a proper witness for the message and serialize it immediately
+//         let key = format!("/{}", message_id);
+//         let merkle_proof = CERTIFIED_MESSAGES.with(|storage| {
+//             let storage_ref = storage.borrow();
+//             let tree = storage_ref.witness(key.as_bytes());
+//             serde_cbor::to_vec(&tree).unwrap_or_default()
+//         });
+
+//         let mut keys: Vec<&str> = key.split('/').collect();
+//         *keys.get_mut(0).unwrap() = "http_expr";
+//         keys.push(".");
+
+//         let mut expr_path_serializer = Serializer::new(vec![]);
+//         expr_path_serializer.self_describe().unwrap();
+//         let keys = keys.serialize(&mut expr_path_serializer).unwrap();
+//         let resp = HttpResponse {
+//             status_code: stored_status,
+//             headers: vec![
+//                 ("Content-Type".to_string(), "application/json".to_string()),
+//                 (
+//                     "IC-Certificate".to_string(),
+//                     format!(
+//                         "certificate=:{}:, tree=:{}:, expr_path=:{}:, version=2",
+//                         encode_certificate(&ic_certificate),
+//                         encode_certificate(&Some(merkle_proof)),
+//                         encode_certificate(&Some(expr_path_serializer.into_inner())),
+//                     ),
+//                 ),
+//                 (
+//                     "IC-CertificateExpression".to_string(),
+//                     "default_certification(ValidationArgs{certification:Certification{no_request_certification:Empty{},response_certification:ResponseCertification{certified_response_headers:ResponseHeaderList{headers:[{}]}}}})".to_string(),
+//                 ),
+//             ],
+//             body: serde_json::to_vec(&json!({ "error": message })).unwrap(),
+//         };
+//         ic_cdk::println!(
+//             "✅ Certified response created for message ID: {} {:?}",
+//             message_id,
+//             resp
+//         );
+//         resp
+//     } else {
+//         // Fallback if the message_id isn't found
+//         ic_cdk::println!("❌ Unknown message ID: {}", message_id);
+//         HttpResponse {
+//             status_code: 500,
+//             headers: vec![("Content-Type".to_string(), "application/json".to_string())],
+//             body: serde_json::to_vec(&json!({ "error": "Unknown message ID" })).unwrap(),
+//         }
+//     }
+// }
+
+// 🚀 **Step 2: Query Handler for Retrieving Certified Data**
+// #[query]
+// fn http_request(req: HttpRequest) -> HttpResponse {
+//     ic_cdk::println!("🛠 HTTP Request: {:?}", req);
+//     // Always ensure we have a certificate
+//     let ic_certificate = data_certificate();
+//     ic_cdk::println!("🟢 IC Certificate: {:?}", ic_certificate);
+//     if ic_certificate.is_none() {
+//         ic_cdk::println!("❌ No data certificate available");
+//         return HttpResponse {
+//             status_code: 500,
+//             headers: vec![("Content-Type".to_string(), "application/json".to_string())],
+//             body: serde_json::to_vec(&json!({ "error": "No certificate available" })).unwrap(),
+//         };
+//     }
+
+//     // ✅ Ensure it's a GET request
+//     if req.method != "GET" {
+//         return create_certified_response("invalid_method");
+//     }
+
+//     // ✅ Extract the path from the URL
+//     let path_segments: Vec<&str> = req.url.trim_start_matches('/').split('/').collect();
+
+//     if path_segments.len() != 2 || path_segments[0] != "data" {
+//         return create_certified_response("not_found");
+//     }
+
+//     // Try to parse as a numeric entry_id first
+//     if let Ok(entry_id) = path_segments[1].parse::<u64>() {
+//         // Handle numeric entry_id (for stored data)
+//         let json_response = CERTIFIED_DATA.with(|data| {
+//             data.borrow()
+//                 .get(entry_id as usize)
+//                 .cloned()
+//                 .unwrap_or_else(|| "Not Found".to_string())
+//         });
+
+//         if json_response == "Not Found" {
+//             return create_certified_response("not_found");
+//         }
+
+//         // Create a key for this entry
+//         let key = format!("/{}", entry_id);
+//         let key_bytes = key.as_bytes().to_vec();
+
+//         // Get the hash for this data
+//         let hash = hash_json(&json_response);
+
+//         // Create a witness for this key and serialize it immediately
+//         let merkle_proof = CERTIFIED_MESSAGES.with(|storage| {
+//             let storage_ref = storage.borrow();
+//             let tree = storage_ref.witness(&key_bytes);
+//             let labeled_tree = labeled(b"certified_data", tree); // Wrap with label
+//             serde_cbor::to_vec(&labeled_tree).unwrap_or_default()
+//         });
+
+//         let mut headers = vec![("Content-Type".to_string(), "application/json".to_string())];
+
+//         headers.push((
+//             "IC-Certificate".to_string(),
+//             encode_certificate(&ic_certificate),
+//         ));
+
+//         headers.push((
+//             "IC-MerkleProof".to_string(),
+//             encode_certificate(&Some(merkle_proof)),
+//         ));
+
+//         HttpResponse {
+//             status_code: 200,
+//             headers,
+//             body: json_response.into_bytes(),
+//         }
+//     } else {
+//         // Handle string message_id (for error messages)
+//         create_certified_response("invalid_id")
+//     }
+// }
+
+// ✅ Shared function to initialize certified storage
+// fn initialize_certified_storage() {
+//     let mut certified_map = RbTree::new();
+//     let mut msg_map = HashMap::new();
+
+//     let messages = [
+//         (
+//             "invalid_method",
+//             "Invalid method. Only GET is allowed.",
+//             405,
+//         ),
+//         ("invalid_format", "Invalid format.", 400),
+//         ("invalid_id", "Invalid entry_id. Must be a number.", 400),
+//         ("not_found", "Requested resource not found.", 404),
+//         ("internal_error", "Internal server error.", 500),
+//     ];
+
+//     // Create a new HashTree that stores everything under "certified_data"
+//     for (id, text, status) in messages {
+//         let hash = Sha256::digest(text.as_bytes());
+//         let hash_bytes: [u8; 32] = hash.into();
+
+//         let key = format!("/{}", id);
+//         certified_map.insert(key.into_bytes(), hash_bytes);
+//         msg_map.insert(id.to_string(), (text.to_string(), status));
+//     }
+
+//     // Add a sample data entry for testing
+//     let sample_data = "This is a sample data entry for testing";
+//     let sample_hash = hash_json(sample_data);
+//     certified_map.insert("/0".as_bytes().to_vec(), sample_hash);
+
+//     CERTIFIED_DATA.with(|data| {
+//         let mut data_ref = data.borrow_mut();
+//         data_ref.push(sample_data.to_string());
+//     });
+
+//     CERTIFIED_MESSAGES.with(|storage| *storage.borrow_mut() = certified_map);
+//     MESSAGE_STORAGE.with(|storage| *storage.borrow_mut() = msg_map);
+
+//     update_certified_data();
+//     ic_cdk::println!("✅ Certified messages initialized with sample data!");
+// }
+
+// #[query]
+// fn debug_http_request() -> HttpResponse {
+//     // Test with a numeric ID that should exist
+//     let request = HttpRequest {
+//         method: "GET".to_string(),
+//         url: "/data/z".to_string(),
+//         headers: vec![],
+//         body: vec![],
+//         certificate_version: None,
+//     };
+//     ic_cdk::println!("🛠 Debug HTTP Request: {:?}", request);
+//     let response = http_request(request);
+//     ic_cdk::println!("🛠 Debug HTTP Response: {:?}", response);
+
+//     // Print certification information
+//     ic_cdk::println!(
+//         "🔍 Certificate available: {:?}",
+//         data_certificate().is_some()
+//     );
+//     CERTIFIED_MESSAGES.with(|storage| {
+//         let storage_ref = storage.borrow();
+//         ic_cdk::println!("🔍 Root hash: {:?}", storage_ref.root_hash());
+//         // Count the number of entries in the tree
+//         let count = storage_ref.iter().count();
+//         ic_cdk::println!("🔍 Tree size: {}", count);
+//     });
+
+//     response
+// }
+
+ic_cdk::export_candid!();

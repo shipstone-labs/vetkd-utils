@@ -22,6 +22,18 @@ export const idlFactory = ({ IDL }) => {
     'created_at' : IDL.Nat64,
     'users' : IDL.Vec(IDL.Tuple(IDL.Text, PrincipalRule)),
   });
+  const HttpRequest = IDL.Record({
+    'url' : IDL.Text,
+    'method' : IDL.Text,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'certificate_version' : IDL.Opt(IDL.Nat16),
+  });
+  const HttpResponse = IDL.Record({
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Text)),
+    'status_code' : IDL.Nat16,
+  });
   return IDL.Service({
     'add_user' : IDL.Func(
         [IDL.Nat, IDL.Opt(IDL.Text), IDL.Opt(IDL.Nat64)],
@@ -35,10 +47,14 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
+    'force_invalid_certification' : IDL.Func([], [], []),
     'get_notes' : IDL.Func([], [IDL.Vec(EncryptedNote)], []),
+    'http_request' : IDL.Func([HttpRequest], [HttpResponse], ['query']),
+    'http_request_update' : IDL.Func([HttpRequest], [HttpResponse], []),
     'refresh_note' : IDL.Func([IDL.Nat], [EncryptedNote], []),
     'remove_user' : IDL.Func([IDL.Nat, IDL.Opt(IDL.Text)], [], []),
     'symmetric_key_verification_key_for_note' : IDL.Func([], [IDL.Text], []),
+    'update_certified_data' : IDL.Func([], [], []),
     'update_note' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
     'whoami' : IDL.Func([], [IDL.Text], []),
   });

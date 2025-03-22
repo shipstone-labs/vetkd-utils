@@ -1,24 +1,25 @@
 
 [package]
-name = "ic-vetkd-notes"
-version = "0.1.9"
-edition = "2021"
 description = "ic vetkd notes implementation to be used inside of a canister"
-license = "MIT"
-repository = "https://github.com/shipstone-labs/vetkd-utils"
 documentation = "https://shipstone-labs.github.io/vetkd-utils/ic_vetkd_notes"
+edition = "2021"
 exclude = [ "package.json", "node_modules", ".turbo", "turbo.json" ]
-wasm-opt = false
+license = "MIT"
+name = "ic-vetkd-notes"
+repository = "https://github.com/shipstone-labs/vetkd-utils"
+version = "0.1.9"
+# wasm-opt = false
 
 [dependencies]
+anyhow = "1.0.97"
 candid = "0.10.13"
+custom_debug = "0.6.2"
+hex = "0.4.3"
 ic-cdk = "0.17.1"
 ic-cdk-macros = "0.17.1"
 ic-stable-structures = "0.6.8"
-lazy_static = "1.5.0"
-serde_json = "1.0.140"
-anyhow = "1.0.97"
-serde = "1.0.219"
 ic-types = "0.7.0"
-hex = "0.4.3"
-custom_debug = "0.6.2"
+include_dir = "0.7.4"
+lazy_static = "1.5.0"
+serde = "1.0.219"
+serde_json = "1.0.140"

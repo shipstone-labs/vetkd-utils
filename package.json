@@ -14,6 +14,7 @@
     "deploy": "dotenv -f ./.env run -- turbo deploy",
     "print-dfx-ii": "echo local Internet Identity: http://$(dfx canister id internet_identity).localhost:8000",
     "print-dfx-www": "echo local dfx frontend server: http://$(dfx canister id vetkd_www).localhost:8000",
+    "print-dfx-notes": "echo local notes canister: http://$(dfx canister id vetkd_notes).localhost:8000",
     "print-local-www": "echo local frontend server: http://localhost:3000",
     "deploy:ic": "dotenv -f ./.env run -- bash ./deploy-ic.sh",
     "deploy:local": "dotenv -f ./.env.local run -- bash ./deploy-ic.sh"
