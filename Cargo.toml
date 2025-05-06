@@ -5,13 +5,13 @@ members = [
     "packages/vetkd-notes-canister",
     "packages/vetkd-notes",
     "packages/vetkd-notes-client",
-    "packages/vetkd-devkit/cdk/encrypted_maps",
-    "packages/vetkd-devkit/cdk/encrypted_maps_example",
-    "packages/vetkd-devkit/cdk/key_manager",
-    "packages/vetkd-devkit/cdk/key_manager_example",
-    "packages/vetkd-devkit/cdk/test_utils",
-    "packages/vetkd-devkit/cdk/types",
-    "packages/vetkd-devkit/cdk/utils",
+    "vetkd-devkit/cdk/encrypted_maps",
+    "vetkd-devkit/cdk/encrypted_maps_example",
+    "vetkd-devkit/cdk/key_manager",
+    "vetkd-devkit/cdk/key_manager_example",
+    "vetkd-devkit/cdk/test_utils",
+    "vetkd-devkit/cdk/types",
+    "vetkd-devkit/cdk/utils",
 ]
 
 [workspace.package]
