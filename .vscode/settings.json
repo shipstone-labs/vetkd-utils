@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.check.targets": ["wasm32-unknown-unknown"],
+    "rust-analyzer.check.extraArgs": ["--target", "wasm32-unknown-unknown"],
+    "rust-analyzer.server.extraEnv": {
+        "RUSTFLAGS": "--cfg=web_sys_unstable_apis"
+    },
+    "rust-analyzer.cargo.buildScripts.enable": true
+}
+EOF < /dev/null

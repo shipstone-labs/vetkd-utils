@@ -21,6 +21,18 @@ export interface HistoryEntry {
   'user' : string,
   'created_at' : bigint,
 }
+export interface HttpRequest {
+  'url' : string,
+  'method' : string,
+  'body' : Uint8Array | number[],
+  'headers' : Array<[string, string]>,
+  'certificate_version' : [] | [number],
+}
+export interface HttpResponse {
+  'body' : Uint8Array | number[],
+  'headers' : Array<[string, string]>,
+  'status_code' : number,
+}
 export interface PrincipalRule { 'when' : [] | [bigint], 'was_read' : boolean }
 export interface _SERVICE {
   'add_user' : ActorMethod<[bigint, [] | [string], [] | [bigint]], undefined>,
@@ -30,10 +42,14 @@ export interface _SERVICE {
     [bigint, Uint8Array | number[]],
     string
   >,
+  'force_invalid_certification' : ActorMethod<[], undefined>,
   'get_notes' : ActorMethod<[], Array<EncryptedNote>>,
+  'http_request' : ActorMethod<[HttpRequest], HttpResponse>,
+  'http_request_update' : ActorMethod<[HttpRequest], HttpResponse>,
   'refresh_note' : ActorMethod<[bigint], EncryptedNote>,
   'remove_user' : ActorMethod<[bigint, [] | [string]], undefined>,
   'symmetric_key_verification_key_for_note' : ActorMethod<[], string>,
+  'update_certified_data' : ActorMethod<[], undefined>,
   'update_note' : ActorMethod<[bigint, string, string], undefined>,
   'whoami' : ActorMethod<[], string>,
 }

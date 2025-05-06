@@ -1,3 +1,7 @@
 
+linkWorkspacePackages: "deep"
+preferWorkspacePackages: true
 packages:
+  - "vetkd-devkit/sdk/*"
+  - "vetkd-devkit/cdk/utils/pkg"
   - "packages/*"

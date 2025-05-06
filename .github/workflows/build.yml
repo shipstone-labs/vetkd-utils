@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: 🚀 Run release-please
         uses: googleapis/release-please-action@v4
@@ -38,6 +40,9 @@ jobs:
             target: wasm32-unknown-unknown
             toolchain: stable
             components: rustfmt, clippy
+
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
 
       - name: Install wasm-pack
         run: |
@@ -59,6 +64,9 @@ jobs:
 
       - name: 🏗️ Install dependencies
         run: pnpm install
+      
+      - name: 🏗️ Build client
+        run: cargo build --release
     
       - name: 🏗️ Build
         run: pnpm build:release

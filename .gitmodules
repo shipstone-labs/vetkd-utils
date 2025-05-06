@@ -1,0 +1,3 @@
+[submodule "vetkd-devkit"]
+	path = vetkd-devkit
+	url = git@github.com:shipstone-labs/vetkd-devkit.git

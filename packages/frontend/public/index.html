@@ -4,7 +4,30 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-    <title>IP Docs</title>
+    <!-- HTML Meta Tags -->
+    <title>{{title}}</title>
+    <meta name="description" content="{{description}}" />
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://{{canister_id}}.icp0.io" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{{title}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta
+      property="og:image"
+      content="https://{{canister_id}}.icp0.io/{{ogimage}}"
+    />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="{{canister_id}}.icp0.io" />
+    <meta property="twitter:url" content="https://{{canister_id}}.icp0.io" />
+    <meta name="twitter:title" content="{{title}}" />
+    <meta name="twitter:description" content="{{description}}" />
+    <meta
+      name="twitter:image"
+      content="https://{{canister_id}}.icp0.io/{{ogimage}}"
+    />
 
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/build/bundle.css" />
