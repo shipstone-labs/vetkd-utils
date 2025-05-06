@@ -15,11 +15,11 @@ crate-type = ["cdylib"]
 
 
 [dependencies]
-anyhow = "1.0.97"
+anyhow = "1.0.98"
 asset_util = { git = "https://github.com/dfinity/internet-identity.git" }
 base64 = "0.22.1"
 candid = "0.10.13"
-chrono = "0.4.40"
+chrono = "0.4.41"
 handlebars = "6.3.2"
 hex = "0.4.3"
 ic-canister-sig-creation = "1.2.0"
@@ -32,9 +32,9 @@ ic-types = "0.7.0"
 ic-vetkd-notes = { path = "../vetkd-notes" }
 include_dir = "0.7.4"
 lazy_static = "1.5.0"
-resvg = "0.45.0"
+resvg = "0.45.1"
 serde = { workspace = true }
 serde_bytes = "0.11.17"
 serde_cbor = "0.11.2"
-serde_json = { version = "1.0.135" }
+serde_json = { version = "1.0.140" }
 sha2.workspace = true

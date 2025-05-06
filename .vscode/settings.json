@@ -1,11 +1,10 @@
 {
-  "[rust]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 4,
-    "editor.detectIndentation": false,
-    "editor.formatOnSave": true
-  },
-  "code-runner.executorMapByGlob": {
-    "pom.xml": "cd $dir && mvn clean package"
-  }
+    "rust-analyzer.cargo.features": "all",
+    "rust-analyzer.check.targets": ["wasm32-unknown-unknown"],
+    "rust-analyzer.check.extraArgs": ["--target", "wasm32-unknown-unknown"],
+    "rust-analyzer.server.extraEnv": {
+        "RUSTFLAGS": "--cfg=web_sys_unstable_apis"
+    },
+    "rust-analyzer.cargo.buildScripts.enable": true
 }
+EOF < /dev/null

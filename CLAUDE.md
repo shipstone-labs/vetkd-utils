@@ -7,9 +7,7 @@ This file contains instructions for Claude when working with this repository.
 Before committing code, Claude should run the following checks:
 
 ```bash
-# Run tests
-cd packages/vetkd-notes-canister/test && ./run_tests.sh
-cd packages/vetkd-notes-client && wasm-pack test --node
+cargo test
 
 # Run clippy
 cargo clippy

@@ -11,7 +11,7 @@ version = "0.1.9"
 # wasm-opt = false
 
 [dependencies]
-anyhow = "1.0.97"
+anyhow = "1.0.98"
 candid = "0.10.13"
 custom_debug = "0.6.2"
 hex = "0.4.3"
@@ -22,4 +22,4 @@ ic-types = "0.7.0"
 include_dir = "0.7.4"
 lazy_static = "1.5.0"
 serde = { workspace = true }
-serde_json = { version = "1.0.135" }
+serde_json = { version = "1.0.140" }

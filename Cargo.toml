@@ -4,11 +4,19 @@ resolver = "2"
 members = [
     "packages/vetkd-notes-canister",
     "packages/vetkd-notes",
-    "packages/vetkd-notes-client"
+    "packages/vetkd-notes-client",
+    "packages/vetkd-devkit/cdk/encrypted_maps",
+    "packages/vetkd-devkit/cdk/encrypted_maps_example",
+    "packages/vetkd-devkit/cdk/key_manager",
+    "packages/vetkd-devkit/cdk/key_manager_example",
+    "packages/vetkd-devkit/cdk/test_utils",
+    "packages/vetkd-devkit/cdk/types",
+    "packages/vetkd-devkit/cdk/utils",
 ]
 
 [workspace.package]
   edition = "2021"
+  version = "0.1.0"
   authors = ["richtera"]
   description = "vetkd utils"
   documentation = "Utilities to use vetkd to store encrypted notes"
@@ -30,10 +38,20 @@ ic_bls12_381 = { version = "0.10.1", default-features = false, features = [
 ] }
 lazy_static = "1.5.0"
 pairing = "0.23"
-sha2 = "0.10.8"
+sha2 = "0.10.9"
 sha3 = "0.10.8"
 subtle = "2.6.1"
 rand = { version = "0.8.5", features = ["small_rng"] }
 rand_chacha = "0.3.1"
 zeroize = { version = "1.8.1", features = ["zeroize_derive"] }
-serde = "1.0.217"
+serde = "1.0.219"
+anyhow = "1.0.95"
+candid = "0.10.2"
+ic-cdk = "0.13.0"
+ic-cdk-macros = "0.13.0"
+ic-stable-structures = "0.6.5"
+ic-types = "0.7.0"
+ic-vetkd-utils = { version = "0.1.0", git = "https://github.com/dfinity/ic.git" }
+pocket-ic = "7.0.0"
+serde_cbor = "0.11.2"
+serde_json = "1.0.138"
