@@ -41,6 +41,9 @@ jobs:
             toolchain: stable
             components: rustfmt, clippy
 
+      - name: Install dfx
+        uses: dfinity/setup-dfx@main
+
       - name: Install wasm-pack
         run: |
           sudo apt-get update
